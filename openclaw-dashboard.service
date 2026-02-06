@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenClaw Super Dashboard
+After=network.target openclaw-gateway.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/OpenClaw/dashboard
+ExecStart=/root/.nvm/versions/node/v24.13.0/bin/node server.js
+Restart=always
+RestartSec=3
+Environment=PATH=/root/.nvm/versions/node/v24.13.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=multi-user.target
