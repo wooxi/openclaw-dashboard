@@ -31,6 +31,51 @@
             overflow: hidden;
         }
 
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loading-overlay.active { display: flex; }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        .toast {
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+            word-wrap: break-word;
+        }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.warning { background: var(--warning); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
         /* Sidebar */
         .sidebar {
             width: 250px;
@@ -54,11 +99,7 @@
             gap: 10px;
         }
 
-        .nav-items {
-            flex: 1;
-            padding-top: 10px;
-        }
-
+        .nav-items { flex: 1; padding-top: 10px; }
         .nav-item {
             padding: 12px 20px;
             cursor: pointer;
@@ -75,6 +116,16 @@
             border-top: 1px solid rgba(255,255,255,0.1);
             font-size: 0.85rem;
         }
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+        .conn-dot.disconnected { background: var(--danger); }
+        .conn-dot.connecting { background: var(--warning); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         /* Main Content */
         .main-content {
@@ -87,7 +138,6 @@
 
         .view-section { display: none; animation: fadeIn 0.3s ease; }
         .view-section.active { display: block; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         h1 { margin: 0 0 20px 0; font-size: 1.8rem; color: #2c3e50; }
@@ -110,8 +160,21 @@
             transition: 0.2s;
             background: #e0e0e0;
             color: #333;
+            position: relative;
         }
-        .btn:hover { opacity: 0.9; }
+        .btn:hover:not(:disabled) { opacity: 0.9; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn.loading::after {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
         .btn-primary { background: var(--accent); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
@@ -130,7 +193,15 @@
         }
         th { color: #7f8c8d; font-weight: 600; font-size: 0.9rem; }
         
-        #gw-token { font-family: monospace; font-size: 0.85rem; }
+        .token-display {
+            font-family: monospace;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .token-masked { filter: blur(4px); }
+        .token-actions { display: flex; gap: 5px; }
 
         #log-window {
             height: 500px;
@@ -146,7 +217,7 @@
 
         .config-editor {
             width: 100%;
-            height: 500px;
+            height: 400px;
             font-family: monospace;
             padding: 15px;
             background: #f8f9fa;
@@ -154,13 +225,42 @@
             border-radius: 6px;
             resize: vertical;
         }
+        .config-editor.error { border-color: var(--danger); }
 
         .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         .stat-box { background: #f1f3f5; padding: 15px; border-radius: 8px; text-align: center; }
         .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
         .stat-label { font-size: 0.9rem; color: #7f8c8d; margin-top: 5px; }
 
-        /* Mobile Menu Toggle */
+        /* Validation panel */
+        .validation-panel {
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .validation-error { color: var(--danger); }
+        .validation-success { color: var(--success); }
+
+        /* Backup list */
+        .backup-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .backup-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .backup-item:last-child { border-bottom: none; }
+
+        /* Mobile */
         .menu-toggle {
             display: none;
             position: absolute;
@@ -175,7 +275,6 @@
             cursor: pointer;
             font-size: 1rem;
         }
-
         .overlay {
             display: none;
             position: fixed;
@@ -188,16 +287,9 @@
         }
         .overlay.active { display: block; }
 
-        /* Mobile Responsiveness */
         @media (max-width: 768px) {
-            body { 
-                flex-direction: column; 
-                height: 100vh;
-                overflow: hidden; 
-            }
-            
+            body { flex-direction: column; height: 100vh; overflow: hidden; }
             .menu-toggle { display: block; }
-            
             .sidebar {
                 position: fixed;
                 top: 0;
@@ -208,29 +300,23 @@
                 box-shadow: 2px 0 10px rgba(0,0,0,0.5);
             }
             .sidebar.open { transform: translateX(0); }
-            
-            .main-content {
-                padding: 60px 15px 20px; 
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
+            .main-content { padding: 60px 15px 20px; overflow-y: auto; }
             .stat-grid { grid-template-columns: 1fr; }
-            
-            /* Responsive tables */
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { position: absolute; top: -9999px; left: -9999px; }
             tr { border: 1px solid var(--border); margin-bottom: 10px; border-radius: 4px; }
             td { border: none; border-bottom: 1px solid #eee; position: relative; padding-left: 50%; display: block; width: 100%; }
             td:before { position: absolute; top: 12px; left: 12px; width: 40%; padding-right: 10px; white-space: nowrap; font-weight: bold; content: attr(data-label); color: #7f8c8d; }
-            
-            .card h2 { margin-bottom: 15px; }
-            .card > div[style*="display: flex"] { flex-direction: column; }
             .btn { width: 100%; margin-bottom: 10px; }
         }
     </style>
 </head>
 <body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="toast-container" id="toast-container"></div>
+
     <button class="menu-toggle" onclick="toggleSidebar()">☰ 菜单</button>
     <div class="overlay" onclick="toggleSidebar()"></div>
 
@@ -239,20 +325,22 @@
             <span id="status-dot" class="status-dot"></span> OpenClaw
         </div>
         <div class="nav-items">
-            <div class="nav-item active" onclick="switchView('dashboard'); toggleSidebar()">📊 仪表盘</div>
-            <div class="nav-item" onclick="switchView('logs'); toggleSidebar()">📝 实时日志</div>
-            <div class="nav-item" onclick="switchView('sessions'); toggleSidebar()">💬 会话管理</div>
-            <div class="nav-item" onclick="switchView('config'); toggleSidebar()">⚙️ 配置编辑</div>
+            <div class="nav-item active" onclick="switchView('dashboard')">📊 仪表盘</div>
+            <div class="nav-item" onclick="switchView('logs')">📝 实时日志</div>
+            <div class="nav-item" onclick="switchView('sessions')">💬 会话管理</div>
+            <div class="nav-item" onclick="switchView('config')">⚙️ 配置编辑</div>
         </div>
         <div class="system-status">
             <div>Mem: <span id="mem-usage">-</span></div>
             <div>CPU: <span id="cpu-usage">-</span></div>
-            <div style="margin-top:5px; font-size:0.75rem; opacity:0.7">Watchdog Active ✅</div>
+            <div class="connection-status">
+                <span class="conn-dot" id="conn-dot"></span>
+                <span id="conn-text">连接中...</span>
+            </div>
         </div>
     </div>
 
     <div class="main-content">
-        <!-- Dashboard View -->
         <div id="view-dashboard" class="view-section active">
             <h1>系统概览</h1>
             
@@ -273,10 +361,10 @@
 
             <div class="card">
                 <h2>服务控制</h2>
-                <div style="display: flex; gap: 15px;">
-                    <button class="btn btn-success" onclick="control('start')">▶ 启动服务</button>
-                    <button class="btn btn-danger" onclick="control('stop')">⏹ 停止服务</button>
-                    <button class="btn btn-primary" onclick="control('restart')">🔄 重启服务</button>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-success" id="btn-start" onclick="control('start')">▶ 启动服务</button>
+                    <button class="btn btn-danger" id="btn-stop" onclick="control('stop')">⏹ 停止服务</button>
+                    <button class="btn btn-primary" id="btn-restart" onclick="control('restart')">🔄 重启服务</button>
                 </div>
                 <p id="status-text" style="margin-top: 15px; color: #666;"></p>
             </div>
@@ -284,14 +372,24 @@
             <div class="card">
                 <h2>网关信息</h2>
                 <table>
-                    <tr><td data-label="Token">Token</td><td id="gw-token" style="filter:blur(4px);cursor:pointer" onclick="this.style.filter='none'">-</td></tr>
+                    <tr>
+                        <td data-label="Token">Token</td>
+                        <td>
+                            <div class="token-display">
+                                <span id="gw-token" class="token-masked">-</span>
+                                <div class="token-actions">
+                                    <button class="btn" onclick="toggleToken()">👁</button>
+                                    <button class="btn" onclick="copyToken()">📋</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                     <tr><td data-label="Port">Port</td><td id="gw-port">-</td></tr>
                     <tr><td data-label="Version">Version</td><td id="gw-version">-</td></tr>
                 </table>
             </div>
         </div>
 
-        <!-- Logs View -->
         <div id="view-logs" class="view-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h1>实时日志</h1>
@@ -300,7 +398,6 @@
             <div id="log-window"></div>
         </div>
 
-        <!-- Sessions View -->
         <div id="view-sessions" class="view-section">
             <h1>会话与任务</h1>
             <div class="card">
@@ -319,21 +416,81 @@
             </div>
         </div>
 
-        <!-- Config View -->
         <div id="view-config" class="view-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap: wrap; gap: 10px;">
                 <h1>配置文件 (openclaw.json)</h1>
-                <button class="btn btn-primary" onclick="saveConfig()">💾 保存配置</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="validateConfig()">✓ 验证</button>
+                    <button class="btn btn-primary" onclick="saveConfig()">💾 保存配置</button>
+                </div>
             </div>
-            <textarea id="config-editor" class="config-editor"></textarea>
+            
+            <div class="validation-panel" id="validation-panel" style="display: none;">
+                <div id="validation-result"></div>
+            </div>
+            
+            <textarea id="config-editor" class="config-editor" placeholder="加载中..."></textarea>
+            
+            <div class="card" style="margin-top: 20px;">
+                <h3>配置备份历史</h3>
+                <div class="backup-list" id="backup-list">
+                    <div style="padding: 15px; color: #999;">暂无备份</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+        // Configuration
+        const API_TOKEN = localStorage.getItem('apiToken') || prompt('请输入 API Token:');
+        if (API_TOKEN) localStorage.setItem('apiToken', API_TOKEN);
+        
+        let socket = null;
+        let reconnectAttempts = 0;
         let currentView = 'dashboard';
-
+        let rawConfig = '';
+        
+        // UI Helpers
+        function showLoading(show) {
+            document.getElementById('loading-overlay').classList.toggle('active', show);
+        }
+        
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+        
+        function setButtonLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = loading;
+                btn.classList.toggle('loading', loading);
+            }
+        }
+        
+        function updateConnectionStatus(status) {
+            const dot = document.getElementById('conn-dot');
+            const text = document.getElementById('conn-text');
+            dot.className = 'conn-dot';
+            
+            if (status === 'connected') {
+                dot.classList.add('connected');
+                text.textContent = '已连接';
+            } else if (status === 'connecting') {
+                dot.classList.add('connecting');
+                text.textContent = '重连中...';
+            } else {
+                dot.classList.add('disconnected');
+                text.textContent = '已断开';
+            }
+        }
+        
+        // Sidebar
         function toggleSidebar() {
             if (window.innerWidth <= 768) {
                 const sidebar = document.getElementById('sidebar');
@@ -342,136 +499,310 @@
                 overlay.classList.toggle('active');
             }
         }
-
+        
         function switchView(view) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            event.currentTarget.classList.add('active');
             
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${view}`).classList.add('active');
             currentView = view;
-        }
-
-        // Logs
-        const logWindow = document.getElementById('log-window');
-        socket.on('log', (msg) => {
-            if (msg.includes('openclaw gateway status') || msg.includes('Probe target')) return; 
-
-            const div = document.createElement('div');
-            div.style.borderBottom = '1px solid #333';
-            div.style.padding = '2px 0';
             
-            try {
-                const log = JSON.parse(msg);
-                let text = log['1'] || log['0'] || JSON.stringify(log);
-                let level = (log._meta && log._meta.logLevelName) || 'INFO';
-                let time = log.time ? new Date(log.time).toLocaleTimeString() : '';
+            if (window.innerWidth <= 768) toggleSidebar();
+            
+            if (view === 'config') loadConfig();
+            if (view === 'sessions') updateSessions();
+        }
+        
+        // WebSocket with reconnection
+        function connectSocket() {
+            updateConnectionStatus('connecting');
+            
+            socket = io({
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000
+            });
+            
+            socket.on('connect', () => {
+                console.log('[Socket] Connected');
+                updateConnectionStatus('connected');
+                reconnectAttempts = 0;
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('[Socket] Disconnected');
+                updateConnectionStatus('disconnected');
+            });
+            
+            socket.on('connect_error', (err) => {
+                console.error('[Socket] Connection error:', err);
+                updateConnectionStatus('connecting');
+                reconnectAttempts++;
+            });
+            
+            socket.on('system:connected', (data) => {
+                showToast(`已连接到日志: ${data.logFile}`, 'success');
+            });
+            
+            socket.on('system:recovery', (data) => {
+                showToast(`系统自动恢复: ${data.reason}`, 'warning');
+            });
+            
+            socket.on('log', (msg) => {
+                const logWindow = document.getElementById('log-window');
+                const div = document.createElement('div');
+                div.style.borderBottom = '1px solid #333';
+                div.style.padding = '2px 0';
                 
-                div.innerHTML = `<span style="color:#666">[${time}]</span> <span style="color:${getLevelColor(level)}">[${level}]</span> ${text}`;
-            } catch(e) {
-                div.textContent = msg;
-                if(msg.includes('ERR') || msg.includes('fail')) div.style.color = '#ff6b6b';
-            }
+                try {
+                    const log = JSON.parse(msg);
+                    let text = log['1'] || log['0'] || JSON.stringify(log);
+                    let level = (log._meta && log._meta.logLevelName) || 'INFO';
+                    let time = log.time ? new Date(log.time).toLocaleTimeString() : '';
+                    
+                    div.innerHTML = `<span style="color:#666">[${time}]</span> <span style="color:${getLevelColor(level)}">[${level}]</span> ${escapeHtml(text)}`;
+                } catch(e) {
+                    div.textContent = msg;
+                }
 
-            logWindow.appendChild(div);
-            if (document.getElementById('auto-scroll').checked) {
-                logWindow.scrollTop = logWindow.scrollHeight;
-            }
-        });
-
+                logWindow.appendChild(div);
+                if (document.getElementById('auto-scroll').checked) {
+                    logWindow.scrollTop = logWindow.scrollHeight;
+                }
+                
+                // Limit log entries
+                while (logWindow.children.length > 1000) {
+                    logWindow.removeChild(logWindow.firstChild);
+                }
+            });
+        }
+        
         function getLevelColor(level) {
-            if(level === 'ERROR' || level === 'FATAL') return '#ff6b6b';
-            if(level === 'WARN') return '#f39c12';
+            if (level === 'ERROR' || level === 'FATAL') return '#ff6b6b';
+            if (level === 'WARN') return '#f39c12';
             return '#3498db';
         }
-
-        // Data Fetching
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // API calls
+        async function apiCall(endpoint, options = {}) {
+            const url = `/api${endpoint}`;
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-API-Token': API_TOKEN
+            };
+            
+            try {
+                const res = await fetch(url, { ...options, headers });
+                if (res.status === 401) {
+                    showToast('API Token 无效，请重新登录', 'error');
+                    localStorage.removeItem('apiToken');
+                    return null;
+                }
+                return await res.json();
+            } catch (e) {
+                showToast(`请求失败: ${e.message}`, 'error');
+                return null;
+            }
+        }
+        
+        // Data updates
         async function updateData() {
             try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
+                const data = await apiCall('/status');
+                if (!data) return;
                 
                 if (data.system) {
-                    const mem = data.system.memory;
-                    document.getElementById('mem-usage').textContent = `${Math.round(mem.used/1024/1024)}MB (${mem.percent}%)`;
-                    document.getElementById('cpu-usage').textContent = data.system.cpu.load[0].toFixed(2);
-                    document.getElementById('uptime').textContent = (data.system.uptime / 3600).toFixed(1) + 'h';
+                    document.getElementById('mem-usage').textContent = 
+                        `${data.system.memory.used}MB (${data.system.memory.percent}%)`;
+                    document.getElementById('cpu-usage').textContent = 
+                        data.system.cpu.load[0].toFixed(2);
+                    document.getElementById('uptime').textContent = 
+                        (data.system.uptime / 3600).toFixed(1) + 'h';
                 }
 
-                const isRunning = data.gateway.output && (data.gateway.output.includes('active') || data.gateway.output.includes('running'));
+                const isRunning = data.gateway.running;
                 const dot = document.getElementById('status-dot');
-                if (isRunning) {
-                    dot.className = 'status-dot status-running';
-                    document.getElementById('status-text').textContent = '✅ 服务正在运行';
-                } else {
-                    dot.className = 'status-dot status-stopped';
-                    document.getElementById('status-text').textContent = '❌ 服务未运行';
-                }
+                dot.className = 'status-dot ' + (isRunning ? 'status-running' : 'status-stopped');
+                document.getElementById('status-text').textContent = 
+                    isRunning ? '✅ 服务正在运行' : '❌ 服务未运行';
             } catch(e) {}
-
-            if (currentView === 'dashboard' || currentView === 'sessions') {
-                try {
-                    const sRes = await fetch('/api/sessions');
-                    const sData = await sRes.json();
-                    const sessions = sData.sessions || [];
-                    document.getElementById('active-sessions-count').textContent = sessions.length;
-                    
-                    const tbody = document.querySelector('#sessions-table tbody');
-                    tbody.innerHTML = sessions.map(s => `<tr><td data-label="ID">${s.sessionId || 'N/A'}</td><td data-label="Agent">${s.key || s.agentId}</td><td data-label="Last Active">${new Date(s.updatedAt || Date.now()).toLocaleTimeString()}</td></tr>`).join('');
-                } catch(e) {}
-
-                try {
-                    const cRes = await fetch('/api/cron');
-                    const cData = await cRes.json();
-                    const jobs = cData.jobs || [];
-                    document.getElementById('cron-jobs-count').textContent = jobs.length;
-                    
-                    const tbody = document.querySelector('#cron-table tbody');
-                    tbody.innerHTML = jobs.map(j => `<tr><td data-label="ID">${j.id}</td><td data-label="Schedule">${JSON.stringify(j.schedule)}</td><td data-label="Enabled">${j.enabled ? '✅' : '❌'}</td></tr>`).join('');
-                } catch(e) {}
+        }
+        
+        async function updateSessions() {
+            const [sData, cData] = await Promise.all([
+                apiCall('/sessions'),
+                apiCall('/cron')
+            ]);
+            
+            if (sData && sData.success) {
+                document.getElementById('active-sessions-count').textContent = sData.sessions.length;
+                const tbody = document.querySelector('#sessions-table tbody');
+                tbody.innerHTML = sData.sessions.map(s => 
+                    `<tr><td data-label="ID">${escapeHtml(s.sessionId || 'N/A')}</td>
+                     <td data-label="Agent">${escapeHtml(s.key || s.agentId || '-')}</td>
+                     <td data-label="Last Active">${new Date(s.updatedAt || Date.now()).toLocaleTimeString()}</td></tr>`
+                ).join('');
+            }
+            
+            if (cData && cData.success) {
+                document.getElementById('cron-jobs-count').textContent = cData.jobs.length;
+                const tbody = document.querySelector('#cron-table tbody');
+                tbody.innerHTML = cData.jobs.map(j => 
+                    `<tr><td data-label="ID">${escapeHtml(j.id)}</td>
+                     <td data-label="Schedule">${escapeHtml(JSON.stringify(j.schedule))}</td>
+                     <td data-label="Enabled">${j.enabled ? '✅' : '❌'}</td></tr>`
+                ).join('');
             }
         }
-
+        
+        // Config management
         async function loadConfig() {
-            const res = await fetch('/api/config');
-            const data = await res.json();
-            if(data.success) {
-                document.getElementById('config-editor').value = JSON.stringify(data.config, null, 2);
-                const conf = data.config;
-                if(conf.gateway) {
-                    document.getElementById('gw-token').textContent = conf.gateway.auth?.token || '-';
-                    document.getElementById('gw-port').textContent = conf.gateway.port || '-';
+            showLoading(true);
+            const data = await apiCall('/config');
+            showLoading(false);
+            
+            if (data && data.success) {
+                rawConfig = data.raw || JSON.stringify(data.config, null, 2);
+                document.getElementById('config-editor').value = rawConfig;
+                
+                if (data.config.gateway) {
+                    const token = data.config.gateway.auth?.token || '-';
+                    document.getElementById('gw-token').dataset.fullToken = token;
+                    document.getElementById('gw-token').textContent = token.substring(0, 8) + '********';
+                    document.getElementById('gw-port').textContent = data.config.gateway.port || '-';
                 }
-                if(conf.meta) document.getElementById('gw-version').textContent = conf.meta.lastTouchedVersion || '-';
+                if (data.config.meta) {
+                    document.getElementById('gw-version').textContent = data.config.meta.lastTouchedVersion || '-';
+                }
+                
+                // Update backup list
+                const backupList = document.getElementById('backup-list');
+                if (data.backups && data.backups.length > 0) {
+                    backupList.innerHTML = data.backups.map(b => 
+                        `<div class="backup-item">
+                            <span>${escapeHtml(b)}</span>
+                            <button class="btn" onclick="restoreConfig('${escapeHtml(b)}')">恢复</button>
+                        </div>`
+                    ).join('');
+                }
             }
         }
-
-        async function saveConfig() {
-            if(!confirm('确定要保存配置吗？')) return;
-            try {
-                const config = JSON.parse(document.getElementById('config-editor').value);
-                await fetch('/api/config', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({config})
-                });
-                alert('已保存！');
-            } catch(e) { alert('JSON 格式错误'); }
+        
+        function toggleToken() {
+            const el = document.getElementById('gw-token');
+            if (el.classList.contains('token-masked')) {
+                el.textContent = el.dataset.fullToken;
+                el.classList.remove('token-masked');
+            } else {
+                el.textContent = el.dataset.fullToken.substring(0, 8) + '********';
+                el.classList.add('token-masked');
+            }
         }
-
-        async function control(action) {
-            if(!confirm(`确定要 ${action} 吗？`)) return;
-            await fetch('/api/control', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action})
+        
+        function copyToken() {
+            const token = document.getElementById('gw-token').dataset.fullToken;
+            navigator.clipboard.writeText(token).then(() => {
+                showToast('Token 已复制到剪贴板', 'success');
             });
-            setTimeout(updateData, 2000);
         }
-
+        
+        function validateConfig() {
+            const editor = document.getElementById('config-editor');
+            const panel = document.getElementById('validation-panel');
+            const result = document.getElementById('validation-result');
+            
+            try {
+                JSON.parse(editor.value);
+                editor.classList.remove('error');
+                result.innerHTML = '<span class="validation-success">✅ JSON 格式有效</span>';
+                panel.style.display = 'block';
+            } catch (e) {
+                editor.classList.add('error');
+                result.innerHTML = `<span class="validation-error">❌ JSON 错误: ${escapeHtml(e.message)}</span>`;
+                panel.style.display = 'block';
+            }
+        }
+        
+        async function saveConfig() {
+            if (!confirm('确定要保存配置吗？错误的配置可能导致服务无法启动。')) return;
+            
+            let config;
+            try {
+                config = JSON.parse(document.getElementById('config-editor').value);
+            } catch (e) {
+                showToast('JSON 格式错误，请修正后再保存', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            const result = await apiCall('/config', {
+                method: 'POST',
+                body: JSON.stringify({ config })
+            });
+            showLoading(false);
+            
+            if (result && result.success) {
+                showToast('配置已保存' + (result.backupPath ? `，备份: ${result.backupPath}` : ''), 'success');
+                loadConfig(); // Refresh
+            } else {
+                showToast('保存失败: ' + (result?.error || '未知错误'), 'error');
+            }
+        }
+        
+        async function restoreConfig(backupFile) {
+            if (!confirm(`确定要恢复到 ${backupFile} 吗？当前配置将被覆盖。`)) return;
+            
+            showLoading(true);
+            const result = await apiCall('/config/restore', {
+                method: 'POST',
+                body: JSON.stringify({ backupFile })
+            });
+            showLoading(false);
+            
+            if (result && result.success) {
+                showToast('配置已恢复', 'success');
+                loadConfig();
+            } else {
+                showToast('恢复失败: ' + (result?.error || '未知错误'), 'error');
+            }
+        }
+        
+        // Service control
+        async function control(action) {
+            const btnId = 'btn-' + action;
+            setButtonLoading(btnId, true);
+            
+            const result = await apiCall('/control', {
+                method: 'POST',
+                body: JSON.stringify({ action })
+            });
+            
+            setButtonLoading(btnId, false);
+            
+            if (result) {
+                showToast(result.success ? `已执行: ${action}` : `执行失败: ${result.output}`, 
+                    result.success ? 'success' : 'error');
+                setTimeout(updateData, 2000);
+            }
+        }
+        
+        // Initialize
+        connectSocket();
         updateData();
-        loadConfig();
         setInterval(updateData, 5000);
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (socket) socket.disconnect();
+        });
     </script>
 </body>
 </html>
