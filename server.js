@@ -15,24 +15,18 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
-const CONFIG_PATH = '/Users/chongya/.openclaw/openclaw.json';
-const STABLE_CONFIG_PATH = '/Users/chongya/.openclaw/openclaw.json.stable_v1';
+const CONFIG_PATH = path.join(os.homedir(), '.openclaw/openclaw.json');
+const STABLE_CONFIG_PATH = path.join(os.homedir(), '.openclaw/openclaw.json.stable_v1');
 
-// Security: API Token authentication
-const API_TOKEN = process.env.DASHBOARD_API_TOKEN || 'openclaw-dashboard-' + Date.now();
-console.log(`[Security] API Token: ${API_TOKEN.substring(0, 10)}...`);
+console.log(`[Config] Config path: ${CONFIG_PATH}`);
+console.log(`[Config] Stable config path: ${STABLE_CONFIG_PATH}`);
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json({ limit: '10mb' }));
 
-// Auth middleware for sensitive endpoints
+// No authentication required - local access only
 function authMiddleware(req, res, next) {
-    const token = req.headers['x-api-token'] || req.query.token;
-    if (token !== API_TOKEN) {
-        console.warn(`[Security] Unauthorized access attempt from ${req.ip}`);
-        return res.status(401).json({ error: 'Unauthorized', message: 'Invalid or missing API token' });
-    }
     next();
 }
 
@@ -208,8 +202,8 @@ app.get('/api/status', async (req, res) => {
     }
 });
 
-// Protected endpoints (require auth)
-app.get('/api/sessions', authMiddleware, async (req, res) => {
+// Session endpoints
+app.get('/api/sessions', async (req, res) => {
     try {
         const result = await runCommand('openclaw sessions --json');
         let jsonStr = result.output;
@@ -222,7 +216,7 @@ app.get('/api/sessions', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/cron', authMiddleware, async (req, res) => {
+app.get('/api/cron', async (req, res) => {
     try {
         const result = await runCommand('openclaw cron list --json');
         let jsonStr = result.output;
@@ -235,7 +229,7 @@ app.get('/api/cron', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('/api/control', authMiddleware, async (req, res) => {
+app.post('/api/control', async (req, res) => {
     const { action } = req.body;
     const validActions = ['restart', 'stop', 'start'];
     
@@ -249,7 +243,7 @@ app.post('/api/control', authMiddleware, async (req, res) => {
 });
 
 // Config endpoints with validation and backup
-app.get('/api/config', authMiddleware, async (req, res) => {
+app.get('/api/config', async (req, res) => {
     try {
         const config = fs.readFileSync(CONFIG_PATH, 'utf8');
         const parsed = JSON.parse(config);
@@ -274,7 +268,7 @@ app.get('/api/config', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('/api/config', authMiddleware, async (req, res) => {
+app.post('/api/config', async (req, res) => {
     try {
         const { config, verifyOnly = false } = req.body;
         
@@ -312,7 +306,7 @@ app.post('/api/config', authMiddleware, async (req, res) => {
 });
 
 // Config restore endpoint
-app.post('/api/config/restore', authMiddleware, async (req, res) => {
+app.post('/api/config/restore', async (req, res) => {
     try {
         const { backupFile } = req.body;
         const backupPath = path.join(path.dirname(CONFIG_PATH), backupFile);
@@ -397,5 +391,5 @@ process.on('unhandledRejection', (reason, promise) => {
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Dashboard running on http://0.0.0.0:${PORT}`);
-    console.log(`🔐 API Token: ${API_TOKEN}`);
+    console.log(`🌸 No authentication required - local access only`);
 });

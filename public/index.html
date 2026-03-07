@@ -442,9 +442,8 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Configuration
-        const API_TOKEN = localStorage.getItem('apiToken') || prompt('请输入 API Token:');
-        if (API_TOKEN) localStorage.setItem('apiToken', API_TOKEN);
+        // No authentication required
+        const API_TOKEN = 'no-auth';
         
         let socket = null;
         let reconnectAttempts = 0;
@@ -543,11 +542,11 @@
             });
             
             socket.on('system:connected', (data) => {
-                showToast(`已连接到日志: ${data.logFile}`, 'success');
+                showToast(`已连接到日志：${data.logFile}`, 'success');
             });
             
             socket.on('system:recovery', (data) => {
-                showToast(`系统自动恢复: ${data.reason}`, 'warning');
+                showToast(`系统自动恢复：${data.reason}`, 'warning');
             });
             
             socket.on('log', (msg) => {
@@ -591,24 +590,18 @@
             return div.innerHTML;
         }
         
-        // API calls
+        // API calls - No authentication required
         async function apiCall(endpoint, options = {}) {
             const url = `/api${endpoint}`;
             const headers = {
-                'Content-Type': 'application/json',
-                'X-API-Token': API_TOKEN
+                'Content-Type': 'application/json'
             };
             
             try {
                 const res = await fetch(url, { ...options, headers });
-                if (res.status === 401) {
-                    showToast('API Token 无效，请重新登录', 'error');
-                    localStorage.removeItem('apiToken');
-                    return null;
-                }
                 return await res.json();
             } catch (e) {
-                showToast(`请求失败: ${e.message}`, 'error');
+                showToast(`请求失败：${e.message}`, 'error');
                 return null;
             }
         }
@@ -726,7 +719,7 @@
                 panel.style.display = 'block';
             } catch (e) {
                 editor.classList.add('error');
-                result.innerHTML = `<span class="validation-error">❌ JSON 错误: ${escapeHtml(e.message)}</span>`;
+                result.innerHTML = `<span class="validation-error">❌ JSON 错误：${escapeHtml(e.message)}</span>`;
                 panel.style.display = 'block';
             }
         }
@@ -750,10 +743,10 @@
             showLoading(false);
             
             if (result && result.success) {
-                showToast('配置已保存' + (result.backupPath ? `，备份: ${result.backupPath}` : ''), 'success');
+                showToast('配置已保存' + (result.backupPath ? `，备份：${result.backupPath}` : ''), 'success');
                 loadConfig(); // Refresh
             } else {
-                showToast('保存失败: ' + (result?.error || '未知错误'), 'error');
+                showToast('保存失败：' + (result?.error || '未知错误'), 'error');
             }
         }
         
@@ -771,7 +764,7 @@
                 showToast('配置已恢复', 'success');
                 loadConfig();
             } else {
-                showToast('恢复失败: ' + (result?.error || '未知错误'), 'error');
+                showToast('恢复失败：' + (result?.error || '未知错误'), 'error');
             }
         }
         
@@ -788,7 +781,7 @@
             setButtonLoading(btnId, false);
             
             if (result) {
-                showToast(result.success ? `已执行: ${action}` : `执行失败: ${result.output}`, 
+                showToast(result.success ? `已执行：${action}` : `执行失败：${result.output}`, 
                     result.success ? 'success' : 'error');
                 setTimeout(updateData, 2000);
             }
